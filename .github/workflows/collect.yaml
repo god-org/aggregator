@@ -1,0 +1,48 @@
+name: Collect
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.repository }}
+  cancel-in-progress: true
+
+env:
+  CUSTOMIZE_LINK: ${{ secrets.CUSTOMIZE_LINK }}
+  ENABLE_SPECIAL_PROTOCOLS: ${{ vars.ENABLE_SPECIAL_PROTOCOLS }}
+  GIST_LINK: ${{ secrets.GIST_LINK }}
+  GIST_PAT: ${{ secrets.GIST_PAT }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  TZ: Asia/Shanghai
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          repository: wzdnzd/aggregator
+
+      - name: Setup Python
+        uses: actions/setup-python@main
+        with:
+          python-version: x
+          cache: pip
+          architecture: x64
+
+      - name: Install
+        run: |
+          python -V
+          python -m pip install -r requirements.txt
+
+      - name: Collect
+        run: |
+          python -u subscribe/collect.py --all --overwrite --skip
+
+      - name: Timestamp
+        run: |
+          echo "TIME: $(date +"%Y-%m-%d %H:%M:%S")"
